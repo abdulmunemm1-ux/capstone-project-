@@ -1,0 +1,279 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Heart For You</title>
+  
+  <!-- Romantic Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      overflow: hidden;
+      background: radial-gradient(circle at center, #1a0410 0%, #050106 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      color: #fff;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Text Container Underneath */
+    .content-container {
+      position: absolute;
+      bottom: 12%;
+      z-index: 2;
+      text-align: center;
+      pointer-events: none;
+      padding: 0 20px;
+    }
+
+    .name-title {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      background: linear-gradient(135deg, #00ebf8 0%, #2faee9 50%, #0ec9f8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 20px rgba(38, 23, 251, 0.6));
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      animation: fadeInGlow 2.5s ease-out forwards;
+    }
+
+    .sub-message {
+      font-size: clamp(0.95rem, 2.5vw, 1.25rem);
+      font-weight: 300;
+      color: rgba(80, 31, 243, 0.82);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(185, 11, 243, 0.653);
+      animation: fadeInGlow 3.5s ease-out forwards;
+    }
+
+    /* Tap hint for mobile & interactive feel */
+    .interactive-hint {
+     position: absolute;
+  top: 24px;
+  z-index: 2;
+  font-size: 1.3rem; /* Increase this number to make it even bigger */
+  color: rgba(255, 255, 255, 0.7); /* Slightly brighter so it's easier to read */
+  letter-spacing: 1px;
+  pointer-events: none;
+    }
+
+    @keyframes fadeInGlow {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <span class="interactive-hint">كيف المشروع حلو ؟ طيب كبسي على الشاشه</span>
+  
+  <canvas id="heartCanvas"></canvas>
+
+  <div class="content-container">
+    <!-- YOU CAN EDIT THIS NAME DIRECTLY -->
+    <h1 class="name-title" id="lovedOneName">نور</h1>
+
+    <!-- YOU CAN EDIT THIS MESSAGE DIRECTLY -->
+    <p class="sub-message" id="customMessage">NOOR</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('heartCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initHeartPoints();
+    });
+
+    // Heart Math Parametric Equation
+    function heartPosition(t, scale) {
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+      return { x: x * scale, y: y * scale };
+    }
+
+    // Main particle generator
+    const heartParticles = [];
+    const TOTAL_POINTS = 480;
+
+    function initHeartPoints() {
+      heartParticles.length = 0;
+      const baseScale = Math.min(width, height) / 38;
+
+      for (let i = 0; i < TOTAL_POINTS; i++) {
+        const t = (Math.PI * 2 * i) / TOTAL_POINTS;
+        // Layering inner & outer particles for volume
+        const layers = [1, 0.95, 0.88, 0.78, 0.65, 0.5];
+        const chosenLayer = layers[Math.floor(Math.random() * layers.length)];
+        const pos = heartPosition(t, baseScale * chosenLayer);
+
+        // Add small jitter
+        const jitterX = (Math.random() - 0.5) * 12;
+        const jitterY = (Math.random() - 0.5) * 12;
+
+        heartParticles.push({
+          baseX: pos.x + jitterX,
+          baseY: pos.y + jitterY,
+          size: Math.random() * 2 + 1.2,
+          alpha: Math.random() * 0.7 + 0.3,
+          speed: Math.random() * 0.04 + 0.02,
+          phase: Math.random() * Math.PI * 2,
+         color: Math.random() > 0.3 ? '#a855f7' : '#c084fc'
+        });
+      }
+    }
+
+    initHeartPoints();
+
+    // Floating background particles
+    const floaters = [];
+    for (let i = 0; i < 45; i++) {
+      floaters.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: Math.random() * 1.8 + 0.6,
+        vy: -(Math.random() * 0.6 + 0.2),
+        alpha: Math.random() * 0.6 + 0.2
+      });
+    }
+
+    // Tap / Click burst effect
+    const clickBursts = [];
+    function spawnBurst(x, y) {
+      for (let i = 0; i < 24; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 1.5;
+        clickBursts.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 3 + 1,
+          alpha: 1,
+          color: Math.random() > 0.5 ? '#89CFF0' : '#B0E0E6'
+        });
+      }
+    }
+
+    window.addEventListener('pointerdown', (e) => {
+      spawnBurst(e.clientX, e.clientY);
+    });
+
+    let time = 0;
+
+    function render() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Heartbeat pulse rhythm (thump-thump)
+      time += 0.035;
+      const heartbeat = 1;
+
+      const centerX = width / 2;
+      const centerY = height * 0.44; // Placed slightly above center so name sits cleanly below
+
+      // 1. Draw floating ambient stars
+      ctx.fillStyle = 'rgba(255, 200, 220, 0.4)';
+      for (let f of floaters) {
+        f.y += f.vy;
+        if (f.y < -10) {
+          f.y = height + 10;
+          f.x = Math.random() * width;
+        }
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 2. Draw Heart
+      for (let p of heartParticles) {
+        // Floating gentle breathing movement
+        const wave = Math.sin(time * 1.5 + p.phase) * 3;
+        const curX = centerX + (p.baseX * heartbeat) + wave;
+        const curY = centerY + (p.baseY * heartbeat) + wave;
+
+        ctx.save();
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = p.color;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+
+        ctx.beginPath();
+        ctx.arc(curX, curY, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 3. Draw Click Bursts
+      for (let i = clickBursts.length - 1; i >= 0; i--) {
+        const b = clickBursts[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        b.alpha -= 0.02;
+
+        if (b.alpha <= 0) {
+          clickBursts.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = b.color;
+        ctx.fillStyle = b.color;
+        ctx.globalAlpha = b.alpha;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    render();
+
+    // OPTIONAL: Support passing name in URL (e.g. yoursite.com/?name=Sarah)
+    const urlParams = new URLSearchParams(window.location.search);
+    const nameParam = urlParams.get('name');
+    const msgParam = urlParams.get('msg');
+    if (nameParam) document.getElementById('lovedOneName').textContent = decodeURIComponent(nameParam);
+    if (msgParam) document.getElementById('customMessage').textContent = decodeURIComponent(msgParam);
+  </script>
+</body>
+</html>
